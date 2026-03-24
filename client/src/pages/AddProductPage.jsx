@@ -73,8 +73,7 @@ const AddProductPage = () => {
                 value={formData.barcode}
                 onChange={handleChange}
                 required
-                readOnly={!!barcode}
-                className={`manual-input w-full ${barcode ? 'readonly-input' : ''}`}
+                className="manual-input w-full"
               />
             </div>
 
