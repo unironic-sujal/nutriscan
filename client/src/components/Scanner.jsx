@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Html5Qrcode } from 'html5-qrcode';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 
 const Scanner = ({ onScanSuccess, onScanError }) => {
   const scannerRef = useRef(null);
@@ -16,23 +16,29 @@ const Scanner = ({ onScanSuccess, onScanError }) => {
   const startScanner = async () => {
     try {
       setError(null);
-      const html5QrCode = new Html5Qrcode('scanner-region');
+      // Ensure element exists before starting
+      if (!document.getElementById('scanner-region')) {
+        throw new Error('Scanner element not found');
+      }
+
+      // Initialize with specific formats for better performance
+      const html5QrCode = new Html5Qrcode('scanner-region', {
+        formatsToSupport: [
+          Html5QrcodeSupportedFormats.EAN_13,
+          Html5QrcodeSupportedFormats.EAN_8,
+          Html5QrcodeSupportedFormats.UPC_A,
+          Html5QrcodeSupportedFormats.UPC_E,
+          Html5QrcodeSupportedFormats.CODE_128,
+        ]
+      });
+      
       html5QrCodeRef.current = html5QrCode;
 
       await html5QrCode.start(
         { facingMode: 'environment' },
         {
           fps: 10,
-          qrbox: { width: 280, height: 150 },
-          aspectRatio: 1.0,
-          formatsToSupport: [
-            0,  // QR_CODE
-            4,  // EAN_13
-            3,  // EAN_8
-            11, // UPC_A
-            12, // UPC_E
-            2,  // CODE_128
-          ],
+          qrbox: { width: 250, height: 150 }, // standard barcode shape
         },
         (decodedText) => {
           stopScanner();
