@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # MongoDB
+  mongo:
+    image: mongo:7
+    container_name: nutriscan-mongo
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: nutriscan
+    networks:
+      - nutriscan-network
+
+  # Backend API
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: nutriscan-server
+    ports:
+      - '5000:5000'
+    environment:
+      PORT: 5000
+      MONGO_URI: mongodb://mongo:27017/nutriscan
+      NODE_ENV: development
+      CLIENT_URL: http://localhost:3000
+    depends_on:
+      - mongo
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    networks:
+      - nutriscan-network
+    restart: unless-stopped
+
+  # Frontend (for development, use Vite dev server)
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: nutriscan-client
+    ports:
+      - '3000:80'
+    depends_on:
+      - server
+    networks:
+      - nutriscan-network
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
+
+networks:
+  nutriscan-network:
+    driver: bridge
