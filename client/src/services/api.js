@@ -19,6 +19,14 @@ export const getProductByBarcode = async (barcode) => {
 };
 
 /**
+ * Manually add a missing product
+ */
+export const createProduct = async (productData) => {
+  const response = await api.post('/product', productData);
+  return response.data;
+};
+
+/**
  * Search products by name
  */
 export const searchProducts = async (query) => {

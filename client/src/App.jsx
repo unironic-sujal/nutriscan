@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import ScanPage from './pages/ScanPage';
 import ProductPage from './pages/ProductPage';
+import AddProductPage from './pages/AddProductPage';
 import SearchResults from './pages/SearchResults';
 import './App.css';
 
@@ -16,6 +17,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/scan" element={<ScanPage />} />
             <Route path="/product/:barcode" element={<ProductPage />} />
+            <Route path="/add/:barcode" element={<AddProductPage />} />
             <Route path="/search" element={<SearchResults />} />
           </Routes>
         </main>

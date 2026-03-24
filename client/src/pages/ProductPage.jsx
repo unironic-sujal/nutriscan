@@ -47,6 +47,8 @@ const ProductPage = () => {
   }
 
   if (error) {
+    const isNotFound = error.includes('not in our database');
+
     return (
       <div className="page product-page">
         <div className="error-state">
@@ -54,7 +56,12 @@ const ProductPage = () => {
           <h2>Oops!</h2>
           <p>{error}</p>
           <div className="error-actions">
-            <button className="btn btn-primary" onClick={() => navigate('/scan')}>
+            {isNotFound && (
+              <button className="btn btn-primary" onClick={() => navigate(`/add/${barcode}`)}>
+                Add Product Manually
+              </button>
+            )}
+            <button className={isNotFound ? "btn btn-secondary" : "btn btn-primary"} onClick={() => navigate('/scan')}>
               Try Another Scan
             </button>
             <button className="btn btn-secondary" onClick={() => navigate('/')}>

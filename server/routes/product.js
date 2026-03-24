@@ -52,6 +52,55 @@ router.get('/product/:barcode', async (req, res, next) => {
 });
 
 /**
+ * POST /api/product
+ * Manually add a missing product to the database.
+ */
+router.post('/product', async (req, res, next) => {
+  try {
+    const { 
+      barcode, name, brand, serving_size, 
+      calories, protein, carbs, fat, 
+      sugar, fiber, sodium, saturated_fat 
+    } = req.body;
+
+    if (!barcode || !name) {
+      return res.status(400).json({ success: false, error: 'Barcode and name are required.' });
+    }
+
+    // Check if product already exists
+    const existingProduct = await Product.findOne({ barcode });
+    if (existingProduct) {
+      return res.status(400).json({ success: false, error: 'Product with this barcode already exists.' });
+    }
+
+    const productData = {
+      barcode,
+      name,
+      brand: brand || 'Unknown',
+      source: 'manual',
+      nutrition: {
+        serving_size: serving_size || 'N/A',
+        calories: Number(calories) || 0,
+        protein: Number(protein) || 0,
+        carbs: Number(carbs) || 0,
+        fat: Number(fat) || 0,
+        sugar: Number(sugar) || 0,
+        fiber: Number(fiber) || 0,
+        sodium: Number(sodium) || 0,
+        saturated_fat: Number(saturated_fat) || 0,
+      }
+    };
+
+    const product = await Product.create(productData);
+    logger.info(`Manual product added to database: ${barcode} - ${product.name}`);
+
+    return res.status(201).json({ success: true, data: product });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
  * GET /api/search?q=query
  * Search products in our database by name, brand, or category.
  */
