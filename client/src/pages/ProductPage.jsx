@@ -73,17 +73,36 @@ const ProductPage = () => {
     );
   }
 
-  const { nutrition } = product;
+  if (!product) {
+    // If we finished loading, have no errors, but also no product data (unexpected state)
+    // Avoid a crash by returning the blank state or a safe error message.
+    return (
+      <div className="page product-page">
+        <div className="error-state">
+          <div className="error-state-icon">😕</div>
+          <h2>Oops!</h2>
+          <p>Something went wrong loading this product.</p>
+          <div className="error-actions">
+            <button className="btn btn-primary" onClick={() => navigate('/scan')}>
+              Scan Another
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const nutrition = product.nutrition || {};
 
   const macros = [
-    { label: 'Calories', value: nutrition.calories, unit: 'kcal', color: '#ff6b6b', icon: '🔥' },
-    { label: 'Protein', value: nutrition.protein, unit: 'g', color: '#51cf66', icon: '💪' },
-    { label: 'Carbs', value: nutrition.carbs, unit: 'g', color: '#ffd43b', icon: '🌾' },
-    { label: 'Fat', value: nutrition.fat, unit: 'g', color: '#ff922b', icon: '🫧' },
-    { label: 'Sugar', value: nutrition.sugar, unit: 'g', color: '#e599f7', icon: '🍬' },
-    { label: 'Fiber', value: nutrition.fiber, unit: 'g', color: '#69db7c', icon: '🌿' },
-    { label: 'Sodium', value: nutrition.sodium, unit: 'g', color: '#74c0fc', icon: '🧂' },
-    { label: 'Sat. Fat', value: nutrition.saturated_fat, unit: 'g', color: '#ffa94d', icon: '💧' },
+    { label: 'Calories', value: nutrition.calories || 0, unit: 'kcal', color: '#ff6b6b', icon: '🔥' },
+    { label: 'Protein', value: nutrition.protein || 0, unit: 'g', color: '#51cf66', icon: '💪' },
+    { label: 'Carbs', value: nutrition.carbs || 0, unit: 'g', color: '#ffd43b', icon: '🌾' },
+    { label: 'Fat', value: nutrition.fat || 0, unit: 'g', color: '#ff922b', icon: '🫧' },
+    { label: 'Sugar', value: nutrition.sugar || 0, unit: 'g', color: '#e599f7', icon: '🍬' },
+    { label: 'Fiber', value: nutrition.fiber || 0, unit: 'g', color: '#69db7c', icon: '🌿' },
+    { label: 'Sodium', value: nutrition.sodium || 0, unit: 'g', color: '#74c0fc', icon: '🧂' },
+    { label: 'Sat. Fat', value: nutrition.saturated_fat || 0, unit: 'g', color: '#ffa94d', icon: '💧' },
   ];
 
   return (
