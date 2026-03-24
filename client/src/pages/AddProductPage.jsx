@@ -61,8 +61,8 @@ const AddProductPage = () => {
 
         <form onSubmit={handleSubmit} className="add-product-form">
           {/* General Info */}
-          <section className="form-section">
-            <h2 className="section-title">General Info</h2>
+          <section className="glass-card">
+            <h2 className="section-title"><span className="section-icon">📋</span> General Info</h2>
             
             <div className="form-group">
               <label htmlFor="barcode">Barcode</label>
@@ -74,7 +74,7 @@ const AddProductPage = () => {
                 onChange={handleChange}
                 required
                 readOnly={!!barcode}
-                className={barcode ? 'readonly-input' : ''}
+                className={`manual-input w-full ${barcode ? 'readonly-input' : ''}`}
               />
             </div>
 
@@ -87,6 +87,7 @@ const AddProductPage = () => {
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="e.g. Parle-G Original"
+                className="manual-input w-full"
                 required
               />
             </div>
@@ -100,6 +101,7 @@ const AddProductPage = () => {
                 value={formData.brand}
                 onChange={handleChange}
                 placeholder="e.g. Parle"
+                className="manual-input w-full"
               />
             </div>
             
@@ -112,62 +114,90 @@ const AddProductPage = () => {
                 value={formData.serving_size}
                 onChange={handleChange}
                 placeholder="e.g. 100g, 1 biscuit (10g)"
+                className="manual-input w-full"
               />
             </div>
           </section>
 
           {/* Nutrition Info */}
-          <section className="form-section mt-4">
-            <h2 className="section-title">Nutrition (per 100g)</h2>
-            <p className="section-help-text">Enter values in grams (g) unless specified otherwise. Look at the back of the packet.</p>
+          <section className="glass-card">
+            <h2 className="section-title"><span className="section-icon">📊</span> Nutrition (per 100g)</h2>
+            <p className="section-help-text" style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+              Enter values in grams (g) unless specified otherwise. Look at the back of the packet.
+            </p>
 
-            <div className="nutrition-inputs-grid">
-              <div className="form-group">
-                <label htmlFor="calories">Calories (kcal)</label>
-                <input type="number" step="0.1" id="calories" name="calories" value={formData.calories} onChange={handleChange} />
+            <div className="macro-input-grid">
+              <div className="macro-input-card">
+                <label className="macro-input-label" htmlFor="calories">
+                  <span>🔥 Calories</span>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>kcal</span>
+                </label>
+                <input type="number" step="0.1" id="calories" name="calories" value={formData.calories} onChange={handleChange} className="manual-input w-full mt-2" placeholder="0" />
               </div>
 
-              <div className="form-group">
-                <label htmlFor="protein">Protein (g)</label>
-                <input type="number" step="0.1" id="protein" name="protein" value={formData.protein} onChange={handleChange} />
+              <div className="macro-input-card">
+                <label className="macro-input-label" htmlFor="protein">
+                  <span>💪 Protein</span>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>g</span>
+                </label>
+                <input type="number" step="0.1" id="protein" name="protein" value={formData.protein} onChange={handleChange} className="manual-input w-full mt-2" placeholder="0" />
               </div>
 
-              <div className="form-group">
-                <label htmlFor="carbs">Total Carbs (g)</label>
-                <input type="number" step="0.1" id="carbs" name="carbs" value={formData.carbs} onChange={handleChange} />
+              <div className="macro-input-card">
+                <label className="macro-input-label" htmlFor="carbs">
+                  <span>🌾 Carbs</span>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>g</span>
+                </label>
+                <input type="number" step="0.1" id="carbs" name="carbs" value={formData.carbs} onChange={handleChange} className="manual-input w-full mt-2" placeholder="0" />
               </div>
 
-              <div className="form-group">
-                <label htmlFor="sugar">Sugar (g)</label>
-                <input type="number" step="0.1" id="sugar" name="sugar" value={formData.sugar} onChange={handleChange} />
+              <div className="macro-input-card">
+                <label className="macro-input-label" htmlFor="fat">
+                  <span>🫧 Total Fat</span>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>g</span>
+                </label>
+                <input type="number" step="0.1" id="fat" name="fat" value={formData.fat} onChange={handleChange} className="manual-input w-full mt-2" placeholder="0" />
               </div>
 
-              <div className="form-group">
-                <label htmlFor="fat">Total Fat (g)</label>
-                <input type="number" step="0.1" id="fat" name="fat" value={formData.fat} onChange={handleChange} />
+              <div className="macro-input-card">
+                <label className="macro-input-label" htmlFor="sugar">
+                  <span>🍬 Sugar</span>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>g</span>
+                </label>
+                <input type="number" step="0.1" id="sugar" name="sugar" value={formData.sugar} onChange={handleChange} className="manual-input w-full mt-2" placeholder="0" />
               </div>
 
-              <div className="form-group">
-                <label htmlFor="saturated_fat">Saturated Fat (g)</label>
-                <input type="number" step="0.1" id="saturated_fat" name="saturated_fat" value={formData.saturated_fat} onChange={handleChange} />
+              <div className="macro-input-card">
+                <label className="macro-input-label" htmlFor="saturated_fat">
+                  <span>💧 Sat. Fat</span>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>g</span>
+                </label>
+                <input type="number" step="0.1" id="saturated_fat" name="saturated_fat" value={formData.saturated_fat} onChange={handleChange} className="manual-input w-full mt-2" placeholder="0" />
               </div>
 
-              <div className="form-group">
-                <label htmlFor="fiber">Dietary Fiber (g)</label>
-                <input type="number" step="0.1" id="fiber" name="fiber" value={formData.fiber} onChange={handleChange} />
+              <div className="macro-input-card">
+                <label className="macro-input-label" htmlFor="fiber">
+                  <span>🌿 Fiber</span>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>g</span>
+                </label>
+                <input type="number" step="0.1" id="fiber" name="fiber" value={formData.fiber} onChange={handleChange} className="manual-input w-full mt-2" placeholder="0" />
               </div>
 
-              <div className="form-group">
-                <label htmlFor="sodium">Sodium (g)</label>
-                <input type="number" step="0.001" id="sodium" name="sodium" value={formData.sodium} onChange={handleChange} placeholder="e.g. 0.15" />
+              <div className="macro-input-card">
+                <label className="macro-input-label" htmlFor="sodium">
+                  <span>🧂 Sodium</span>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>g</span>
+                </label>
+                <input type="number" step="0.001" id="sodium" name="sodium" value={formData.sodium} onChange={handleChange} className="manual-input w-full mt-2" placeholder="0" />
               </div>
             </div>
           </section>
 
-          <div className="form-actions">
+          <div className="form-actions" style={{ display: 'flex', gap: '16px', marginTop: '32px' }}>
             <button 
               type="button" 
-              className="btn btn-secondary w-full" 
+              className="btn btn-secondary" 
+              style={{ flex: 1 }}
               onClick={() => navigate('/scan')}
               disabled={isSubmitting}
             >
@@ -175,7 +205,8 @@ const AddProductPage = () => {
             </button>
             <button 
               type="submit" 
-              className="btn btn-primary w-full mt-2"
+              className="btn btn-primary"
+              style={{ flex: 2 }}
               disabled={isSubmitting || !formData.name || !formData.barcode}
             >
               {isSubmitting ? 'Saving...' : 'Save Product'}
