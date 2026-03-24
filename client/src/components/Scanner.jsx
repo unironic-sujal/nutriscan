@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import { BrowserMultiFormatReader, NotFoundException } from '@zxing/library';
 
 const Scanner = ({ onScanSuccess, onScanError }) => {
-  const scannerRef = useRef(null);
-  const html5QrCodeRef = useRef(null);
+  const videoRef = useRef(null);
+  const codeReaderRef = useRef(null);
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState(null);
 
@@ -16,70 +16,73 @@ const Scanner = ({ onScanSuccess, onScanError }) => {
   const startScanner = async () => {
     try {
       setError(null);
-      // Ensure element exists before starting
-      if (!document.getElementById('scanner-region')) {
-        throw new Error('Scanner element not found');
+      
+      // ZXing scanner implementation
+      const codeReader = new BrowserMultiFormatReader();
+      codeReaderRef.current = codeReader;
+
+      const videoInputDevices = await codeReader.listVideoInputDevices();
+      if (!videoInputDevices || videoInputDevices.length === 0) {
+        throw new Error("No camera found on this device.");
+      }
+      
+      // Look specifically for a back-facing camera
+      let selectedDeviceId = videoInputDevices[0].deviceId;
+      for (const device of videoInputDevices) {
+        const label = device.label.toLowerCase();
+        if (label.includes('back') || label.includes('environment') || label.includes('rear')) {
+          selectedDeviceId = device.deviceId;
+          break;
+        }
       }
 
-      // Initialize with specific formats for better performance
-      const html5QrCode = new Html5Qrcode('scanner-region', {
-        formatsToSupport: [
-          Html5QrcodeSupportedFormats.EAN_13,
-          Html5QrcodeSupportedFormats.EAN_8,
-          Html5QrcodeSupportedFormats.UPC_A,
-          Html5QrcodeSupportedFormats.UPC_E,
-          Html5QrcodeSupportedFormats.CODE_128,
-        ]
-      });
-      
-      html5QrCodeRef.current = html5QrCode;
-
-      await html5QrCode.start(
-        { 
-          facingMode: 'environment',
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-          advanced: [{ focusMode: "continuous" }]
-        },
-        {
-          fps: 15,
-          disableFlip: false, // Scan the entire viewport instead of restricting to a qrbox
-        },
-        (decodedText) => {
-          stopScanner();
-          if (onScanSuccess) onScanSuccess(decodedText);
-        },
-        (errorMessage) => {
-          // Ignore continuous scan errors (expected while searching)
+      // Start continuous scanning
+      codeReader.decodeFromVideoDevice(
+        selectedDeviceId,
+        videoRef.current,
+        (result, err) => {
+          if (result) {
+            stopScanner();
+            if (onScanSuccess) onScanSuccess(result.getText());
+          }
+          if (err && !(err instanceof NotFoundException)) {
+            // Log true errors, ignore NotFound (which just means scanning the current frame)
+            console.error("ZXing Decoding Error:", err);
+          }
         }
       );
-
+      
       setIsScanning(true);
     } catch (err) {
+      console.error('Camera Init Error:', err);
       setError(
-        err.toString().includes('NotAllowedError')
+        err.toString().includes('NotAllowedError') || err.message?.includes('Permission')
           ? 'Camera permission denied. Please allow camera access and try again.'
-          : 'Unable to start camera. Please make sure no other app is using it.'
+          : 'Unable to start camera. Make sure no other app is using it.'
       );
       if (onScanError) onScanError(err);
     }
   };
 
-  const stopScanner = async () => {
-    if (html5QrCodeRef.current && html5QrCodeRef.current.isScanning) {
-      try {
-        await html5QrCodeRef.current.stop();
-        html5QrCodeRef.current.clear();
-      } catch (err) {
-        console.error('Error stopping scanner:', err);
-      }
+  const stopScanner = () => {
+    if (codeReaderRef.current) {
+      codeReaderRef.current.reset(); // detaches camera feed and stops decoding
+      codeReaderRef.current = null;
     }
     setIsScanning(false);
   };
 
   return (
     <div className="scanner-container">
-      <div id="scanner-region" ref={scannerRef} className="scanner-viewport"></div>
+      <div className="scanner-viewport" style={{ position: 'relative', overflow: 'hidden', borderRadius: 'var(--radius-lg)' }}>
+        <video 
+          ref={videoRef} 
+          style={{ width: '100%', height: '100%', objectFit: 'cover', minHeight: '250px', background: '#000' }}
+          autoPlay 
+          playsInline 
+          muted
+        ></video>
+      </div>
 
       {error && (
         <div className="scanner-error">
@@ -91,14 +94,14 @@ const Scanner = ({ onScanSuccess, onScanError }) => {
       {!isScanning && !error && (
         <button className="btn btn-primary scan-start-btn" onClick={startScanner}>
           <span className="btn-icon">📷</span>
-          Start Camera
+          Start ZXing Camera
         </button>
       )}
 
       {isScanning && (
         <div className="scanner-instructions">
           <div className="pulse-dot"></div>
-          <p>Point your camera at a product barcode</p>
+          <p>Advanced Analysis Active: Frame the barcode</p>
           <button className="btn btn-secondary" onClick={stopScanner}>
             Stop Scanning
           </button>
