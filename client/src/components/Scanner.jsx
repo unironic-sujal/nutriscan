@@ -35,10 +35,15 @@ const Scanner = ({ onScanSuccess, onScanError }) => {
       html5QrCodeRef.current = html5QrCode;
 
       await html5QrCode.start(
-        { facingMode: 'environment' },
+        { 
+          facingMode: 'environment',
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          advanced: [{ focusMode: "continuous" }]
+        },
         {
-          fps: 10,
-          qrbox: { width: 250, height: 150 }, // standard barcode shape
+          fps: 15,
+          disableFlip: false, // Scan the entire viewport instead of restricting to a qrbox
         },
         (decodedText) => {
           stopScanner();
