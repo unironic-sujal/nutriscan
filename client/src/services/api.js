@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_SECRET = import.meta.env.VITE_API_SECRET || '';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -19,10 +20,14 @@ export const getProductByBarcode = async (barcode) => {
 };
 
 /**
- * Manually add a missing product
+ * Manually add a missing product (requires VITE_API_SECRET to be set)
  */
 export const createProduct = async (productData) => {
-  const response = await api.post('/product', productData);
+  const response = await api.post('/product', productData, {
+    headers: {
+      'X-API-Key': API_SECRET,
+    },
+  });
   return response.data;
 };
 

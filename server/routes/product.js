@@ -1,6 +1,7 @@
 const express = require('express');
 const Product = require('../models/Product');
-const { fetchProduct } = require('../services/openFoodFacts');
+const { fetchProduct, searchOpenFoodFacts } = require('../services/openFoodFacts');
+const { requireApiKey } = require('../middleware/auth');
 const logger = require('../utils/logger');
 
 const router = express.Router();
@@ -54,13 +55,14 @@ router.get('/product/:barcode', async (req, res, next) => {
 /**
  * POST /api/product
  * Manually add a missing product to the database.
+ * Protected by API key — requires X-API-Key header.
  */
-router.post('/product', async (req, res, next) => {
+router.post('/product', requireApiKey, async (req, res, next) => {
   try {
-    const { 
-      barcode, name, brand, serving_size, 
-      calories, protein, carbs, fat, 
-      sugar, fiber, sodium, saturated_fat 
+    const {
+      barcode, name, brand, serving_size,
+      calories, protein, carbs, fat,
+      sugar, fiber, sodium, saturated_fat
     } = req.body;
 
     if (!barcode || !name) {
@@ -102,7 +104,9 @@ router.post('/product', async (req, res, next) => {
 
 /**
  * GET /api/search?q=query
- * Search products in our database by name, brand, or category.
+ * Search products by name, brand, or category.
+ * First searches our MongoDB database (full-text index).
+ * If no results found locally, falls back to Open Food Facts search API.
  */
 router.get('/search', async (req, res, next) => {
   try {
@@ -115,7 +119,8 @@ router.get('/search', async (req, res, next) => {
       });
     }
 
-    const products = await Product.find(
+    // Step 1: Search our local database
+    let products = await Product.find(
       { $text: { $search: q } },
       { score: { $meta: 'textScore' } }
     )
@@ -123,10 +128,52 @@ router.get('/search', async (req, res, next) => {
       .limit(20)
       .lean();
 
+    if (products.length > 0) {
+      logger.info(`Search "${q}" found ${products.length} results in database`);
+      return res.json({
+        success: true,
+        source: 'database',
+        count: products.length,
+        data: products,
+      });
+    }
+
+    // Step 2: Fallback to Open Food Facts search API
+    logger.info(`Search "${q}" not in database, falling back to Open Food Facts`);
+    const offResults = await searchOpenFoodFacts(q, 10);
+
+    if (offResults.length === 0) {
+      return res.json({
+        success: true,
+        source: 'openfoodfacts',
+        count: 0,
+        data: [],
+      });
+    }
+
+    // Upsert results into our DB so future searches are faster
+    const savedProducts = [];
+    for (const item of offResults) {
+      try {
+        const saved = await Product.findOneAndUpdate(
+          { barcode: item.barcode },
+          item,
+          { upsert: true, new: true, setDefaultsOnInsert: true }
+        );
+        savedProducts.push(saved);
+      } catch (upsertErr) {
+        // Non-fatal: if a single upsert fails, still return the rest
+        logger.warn(`Failed to upsert OFF search result ${item.barcode}: ${upsertErr.message}`);
+        savedProducts.push(item);
+      }
+    }
+
+    logger.info(`Search "${q}" returned ${savedProducts.length} results from Open Food Facts`);
     return res.json({
       success: true,
-      count: products.length,
-      data: products,
+      source: 'openfoodfacts',
+      count: savedProducts.length,
+      data: savedProducts,
     });
   } catch (error) {
     next(error);
