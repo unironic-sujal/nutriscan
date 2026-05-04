@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SearchBar from '../components/SearchBar';
 import { ProductCard } from '../components/ProductCard';
+import ApiStatus from '../components/ApiStatus';
 import { getRecentProducts } from '../services/api';
 
 const Home = () => {
@@ -31,7 +32,10 @@ const Home = () => {
       {/* Hero Section */}
       <section className="hero">
         <div className="hero-content">
-          <div className="hero-badge">🇮🇳 Made for India</div>
+          <div className="hero-badges">
+            <div className="hero-badge">🇮🇳 Made for India</div>
+            <ApiStatus />
+          </div>
           <h1 className="hero-title">
             Scan. Search. <span className="gradient-text">Know Your Food.</span>
           </h1>

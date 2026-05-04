@@ -8,6 +8,7 @@ dotenv.config();
 
 const connectDB = require('./config/db');
 const productRoutes = require('./routes/product');
+const systemRoutes = require('./routes/system');
 const errorHandler = require('./middleware/errorHandler');
 const logger = require('./utils/logger');
 
@@ -49,6 +50,7 @@ app.use(morgan('dev'));
 
 // Routes
 app.use('/api', productRoutes);
+app.use('/api/system', systemRoutes);
 
 // Root endpoint (friendly message)
 app.get('/', (req, res) => {

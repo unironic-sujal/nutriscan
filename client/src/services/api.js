@@ -47,4 +47,12 @@ export const getRecentProducts = async () => {
   return response.data;
 };
 
+/**
+ * Get system health status
+ */
+export const getSystemStatus = async () => {
+  const response = await api.get('/system/status');
+  return response.data;
+};
+
 export default api;
