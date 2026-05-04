@@ -1,20 +1,21 @@
 const mongoose = require('mongoose');
 const logger = require('../utils/logger');
 
-let isConnected = false;
-
 const connectDB = async () => {
-  if (isConnected) {
+  // 1 = connected, 2 = connecting
+  if (mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2) {
     logger.info('Using existing MongoDB connection');
     return;
   }
+  
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URI);
-    isConnected = true;
+    const conn = await mongoose.connect(process.env.MONGO_URI, {
+      serverSelectionTimeoutMS: 5000, // Fail early if DB is unreachable
+    });
     logger.info(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
     logger.error(`MongoDB Connection Error: ${error.message}`);
-    throw error; // Let the caller handle it — don't kill the process
+    throw error;
   }
 };
 
