@@ -142,38 +142,14 @@ router.get('/search', async (req, res, next) => {
     logger.info(`Search "${q}" not in database, falling back to Open Food Facts`);
     const offResults = await searchOpenFoodFacts(q, 10);
 
-    if (offResults.length === 0) {
-      return res.json({
-        success: true,
-        source: 'openfoodfacts',
-        count: 0,
-        data: [],
-      });
-    }
-
-    // Upsert results into our DB so future searches are faster
-    const savedProducts = [];
-    for (const item of offResults) {
-      try {
-        const saved = await Product.findOneAndUpdate(
-          { barcode: item.barcode },
-          item,
-          { upsert: true, new: true, setDefaultsOnInsert: true }
-        );
-        savedProducts.push(saved);
-      } catch (upsertErr) {
-        // Non-fatal: if a single upsert fails, still return the rest
-        logger.warn(`Failed to upsert OFF search result ${item.barcode}: ${upsertErr.message}`);
-        savedProducts.push(item);
-      }
-    }
-
-    logger.info(`Search "${q}" returned ${savedProducts.length} results from Open Food Facts`);
+    logger.info(`Search "${q}" returned ${offResults.length} results from Open Food Facts`);
+    
+    // Return transient results (do NOT save to database yet — keep DB clean until clicked)
     return res.json({
       success: true,
       source: 'openfoodfacts',
-      count: savedProducts.length,
-      data: savedProducts,
+      count: offResults.length,
+      data: offResults,
     });
   } catch (error) {
     next(error);
