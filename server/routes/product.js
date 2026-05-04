@@ -119,9 +119,12 @@ router.get('/search', async (req, res, next) => {
       });
     }
 
+    // Force the query to lowercase to guarantee case-insensitive search
+    const searchQuery = q.trim().toLowerCase();
+
     // Step 1: Search our local database
     let products = await Product.find(
-      { $text: { $search: q } },
+      { $text: { $search: searchQuery } },
       { score: { $meta: 'textScore' } }
     )
       .sort({ score: { $meta: 'textScore' } })
@@ -139,10 +142,10 @@ router.get('/search', async (req, res, next) => {
     }
 
     // Step 2: Fallback to Open Food Facts search API
-    logger.info(`Search "${q}" not in database, falling back to Open Food Facts`);
-    const offResults = await searchOpenFoodFacts(q, 10);
+    logger.info(`Search "${searchQuery}" not in database, falling back to Open Food Facts`);
+    const offResults = await searchOpenFoodFacts(searchQuery, 10);
 
-    logger.info(`Search "${q}" returned ${offResults.length} results from Open Food Facts`);
+    logger.info(`Search "${searchQuery}" returned ${offResults.length} results from Open Food Facts`);
     
     // Return transient results (do NOT save to database yet — keep DB clean until clicked)
     return res.json({
