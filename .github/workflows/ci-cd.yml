@@ -1,4 +1,4 @@
-name: NutriScan CI/CD
+name: NutriScan CI
 
 on:
   push:
@@ -7,8 +7,9 @@ on:
     branches: [main]
 
 jobs:
-  # Build and test backend
+  # Backend Continuous Integration
   backend:
+    name: Backend CI
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -27,11 +28,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Run security audit
+        run: npm audit --audit-level=high || true
+        # Using || true ensures the build doesn't hard-fail if there are non-critical vulnerabilities, 
+        # but the results will be visible in the CI logs for review.
+
       - name: Run linting
         run: npx eslint . --ext .js || true
 
-  # Build and test frontend
+  # Frontend Continuous Integration
   frontend:
+    name: Frontend CI
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -50,32 +57,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build
+      - name: Run security audit
+        run: npm audit --audit-level=high || true
+
+      - name: Verify production build
         run: npm run build
-
-  # Deploy (only on push to main)
-  deploy:
-    needs: [backend, frontend]
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-    steps:
-      - uses: actions/checkout@v4
-
-      # Deploy frontend to Vercel
-      - name: Deploy Frontend to Vercel
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          working-directory: ./client
-          vercel-args: '--prod'
-
-      # Deploy backend to Railway
-      - name: Deploy Backend to Railway
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: |
-          npm install -g @railway/cli
-          cd server && railway up --service nutriscan-api
