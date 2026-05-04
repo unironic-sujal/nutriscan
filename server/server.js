@@ -42,6 +42,11 @@ app.use(morgan('dev'));
 // Routes
 app.use('/api', productRoutes);
 
+// Root endpoint (friendly message)
+app.get('/', (req, res) => {
+  res.send('🥗 NutriScan API is running. Visit the frontend application to use the scanner.');
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
