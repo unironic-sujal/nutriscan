@@ -14,8 +14,16 @@ const logger = require('./utils/logger');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Connect to MongoDB
-connectDB();
+// Ensure MongoDB is connected before handling any requests
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    logger.error(`Database connection failed: ${error.message}`);
+    res.status(500).json({ success: false, error: 'Database connection failed' });
+  }
+});
 
 // Build allowed origins list from CLIENT_URL (supports comma-separated values)
 const ALLOWED_ORIGINS = [
